@@ -68,6 +68,15 @@
                 background-color: #1a8cd8;
             }
             
+            /* Filtros para SVGs activos */
+            .filter-red {
+                filter: brightness(0) saturate(100%) invert(27%) sepia(85%) saturate(7498%) hue-rotate(334deg) brightness(106%) contrast(97%);
+            }
+            
+            .filter-green {
+                filter: brightness(0) saturate(100%) invert(63%) sepia(88%) saturate(3584%) hue-rotate(90deg) brightness(101%) contrast(101%);
+            }
+            
             .sidebar-nav {
                 position: fixed;
                 left: 0;

@@ -16,9 +16,13 @@ class ChirpController extends Controller
      */
     public function index(): View
     {
+        $chirps = Chirp::with(['user', 'likes', 'shares', 'comments.user'])
+                       ->withCount(['likes', 'shares', 'comments'])
+                       ->latest()
+                       ->get();
         
         return view('chirps.index', [
-            'chirps' => Chirp::with('user')->latest()->get(),
+            'chirps' => $chirps,
         ]);
     }
 

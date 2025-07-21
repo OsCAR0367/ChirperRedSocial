@@ -80,7 +80,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="font-bold text-twitter-white">{{ $chirp->user->name }}</span>
-                            <span class="text-twitter-gray">@{{ Str::slug($chirp->user->name) }}</span>
+                            <span class="text-twitter-gray">{{ $chirp->created_at->diffForHumans() }}</span>
                             <span class="text-twitter-gray">·</span>
                             <time class="text-twitter-gray">
                                 {{ $chirp->created_at->diffForHumans() }}

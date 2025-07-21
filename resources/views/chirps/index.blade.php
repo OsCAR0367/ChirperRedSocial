@@ -65,7 +65,6 @@
                             <!-- User Info and Time -->
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="font-bold text-twitter-white hover:underline">{{ $chirp->user->name }}</span>
-                                <span class="text-twitter-gray">@{{ Str::slug($chirp->user->name) }}</span>
                                 <span class="text-twitter-gray">·</span>
                                 <time class="text-twitter-gray hover:underline">
                                     {{ $chirp->created_at->diffForHumans() }}
@@ -80,31 +79,85 @@
                             
                             <!-- Action Buttons -->
                             <div class="flex items-center justify-between max-w-md">
-                                <!-- Reply -->
-                                <button class="flex items-center gap-2 text-twitter-gray hover:text-twitter-blue group">
-                                    <div class="p-2 rounded-full group-hover:bg-blue-900 group-hover:bg-opacity-20">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.867-.04v1.93l5.764-3.19c1.77-.97 2.866-2.8 2.866-4.81 0-2.97-2.43-5.39-5.412-5.39h-4.218z"/>
-                                        </svg>
+                                <!-- Reply/Comments -->
+                                <div x-data="{ showComments: false }" class="flex flex-col">
+                                    <button @click="showComments = !showComments" class="flex items-center gap-2 text-twitter-gray hover:text-twitter-blue group">
+                                        <div class="p-2 rounded-full group-hover:bg-blue-900 group-hover:bg-opacity-20">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.867-.04v1.93l5.764-3.19c1.77-.97 2.866-2.8 2.866-4.81 0-2.97-2.43-5.39-5.412-5.39h-4.218z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="text-sm">{{ $chirp->comments_count }}</span>
+                                    </button>
+                                    
+                                    <!-- Comments Section -->
+                                    <div x-show="showComments" x-transition class="mt-4 border-t border-twitter-gray pt-4" style="display: none;">
+                                        <!-- Add Comment Form -->
+                                        <form action="{{ route('chirps.comment', $chirp) }}" method="POST" class="mb-4">
+                                            @csrf
+                                            <div class="flex gap-3">
+                                                <div class="avatar">
+                                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                                </div>
+                                                <div class="flex-1">
+                                                    <textarea name="comment" placeholder="Add a comment..." 
+                                                            class="w-full bg-transparent text-xl placeholder-twitter-gray border-none resize-none focus:outline-none"
+                                                            rows="2" maxlength="280"></textarea>
+                                                    <div class="flex justify-between items-center mt-3">
+                                                        <span class="text-sm text-twitter-gray">280 characters remaining</span>
+                                                        <button type="submit" class="btn-primary px-6 py-2">Comment</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        
+                                        <!-- Comments List -->
+                                        @foreach($chirp->comments as $comment)
+                                            <div class="flex gap-3 mb-3 pb-3 border-b border-gray-800 last:border-b-0">
+                                                <div class="avatar">
+                                                    {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="font-semibold">{{ $comment->user->name }}</span>
+                                                        <span class="text-twitter-gray text-sm">{{ $comment->created_at->diffForHumans() }}</span>
+                                                        @if($comment->user->is(auth()->user()))
+                                                            <form action="{{ route('comments.destroy', $comment) }}" method="POST" class="ml-auto">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="text-red-500 hover:text-red-400 text-sm"
+                                                                        onclick="return confirm('Delete this comment?')">Delete</button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                    <p class="text-twitter-white">{{ $comment->comment }}</p>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                    <span class="text-sm">0</span>
-                                </button>
+                                </div>
                                 
-                                <!-- Retweet -->
-                                <button class="flex items-center gap-2 text-twitter-gray hover:text-green-500 group">
-                                    <div class="p-2 rounded-full group-hover:bg-green-900 group-hover:bg-opacity-20">
-                                        <img src="{{ asset('share.svg') }}" alt="Share" class="w-5 h-5">
-                                    </div>
-                                    <span class="text-sm">0</span>
-                                </button>
+                                <!-- Share/Retweet -->
+                                <form action="{{ route('chirps.share', $chirp) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="flex items-center gap-2 text-twitter-gray hover:text-green-500 group {{ $chirp->isSharedBy(auth()->user()) ? 'text-green-500' : '' }}">
+                                        <div class="p-2 rounded-full group-hover:bg-green-900 group-hover:bg-opacity-20">
+                                            <img src="{{ asset('share.svg') }}" alt="Share" class="w-5 h-5 {{ $chirp->isSharedBy(auth()->user()) ? 'filter-green' : '' }}">
+                                        </div>
+                                        <span class="text-sm">{{ $chirp->shares_count }}</span>
+                                    </button>
+                                </form>
                                 
                                 <!-- Like -->
-                                <button class="flex items-center gap-2 text-twitter-gray hover:text-red-500 group">
-                                    <div class="p-2 rounded-full group-hover:bg-red-900 group-hover:bg-opacity-20">
-                                        <img src="{{ asset('like.svg') }}" alt="Like" class="w-5 h-5">
-                                    </div>
-                                    <span class="text-sm">0</span>
-                                </button>
+                                <form action="{{ route('chirps.like', $chirp) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="flex items-center gap-2 text-twitter-gray hover:text-red-500 group {{ $chirp->isLikedBy(auth()->user()) ? 'text-red-500' : '' }}">
+                                        <div class="p-2 rounded-full group-hover:bg-red-900 group-hover:bg-opacity-20">
+                                            <img src="{{ asset('like.svg') }}" alt="Like" class="w-5 h-5 {{ $chirp->isLikedBy(auth()->user()) ? 'filter-red' : '' }}">
+                                        </div>
+                                        <span class="text-sm">{{ $chirp->likes_count }}</span>
+                                    </button>
+                                </form>
                                 
                                 <!-- More Options -->
                                 @if ($chirp->user->is(auth()->user()))
