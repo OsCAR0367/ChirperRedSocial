@@ -208,7 +208,7 @@
                     <img src="{{ asset('chipmunk.svg') }}" alt="Chirper" class="w-6 h-6">
                     <span class="font-bold">Chirper</span>
                 </div>
-                <p class="text-gray-400">© 2025 Chirper. Built with Laravel and love.</p>
+                <p class="text-gray-400">© 2025 Chirper. Built with Laravel and love by <a href="https://www.linkedin.com/in/oscar-diego-mamani-ayala/" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium">Oscar Mamani Ayala</a></p>
             </div>
         </footer>
     </body>
